@@ -1,7 +1,7 @@
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 const expressjwt = require("express-jwt");
-const { errorHandler } = require("../helpers/dbErrorHandler"); 
+const { errorHandler } = require("../helpers/dbErrorHandler");
 
 // Signup function
 exports.signup = async (req, res) => {
@@ -62,4 +62,12 @@ exports.signin = async (req, res) => {
     // Send a generic internal server error message
     return res.status(500).json({ error: "Internal server error" });
   }
+};
+
+// Signout function
+exports.signout = (req, res) => {
+  // Clear the JWT token from the client's cookies
+  res.clearCookie("t");
+  // Respond with a success message
+  res.json({ message: "Signout successful" });
 };
