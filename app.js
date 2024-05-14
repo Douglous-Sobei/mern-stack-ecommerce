@@ -8,7 +8,7 @@ const cookieParser = require("cookie-parser");
 require("dotenv").config();
 
 // import routes
-const userRoutes = require("./routes/user");
+const userRoutes = require("./routes/auth");
 
 // app
 const app = express();
