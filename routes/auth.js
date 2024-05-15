@@ -1,5 +1,3 @@
-// routes/user.js
-
 const express = require("express");
 const router = express.Router();
 const {
@@ -7,7 +5,7 @@ const {
   signin,
   signout,
   requireSignin,
-} = require("../controllers/authController");
+} = require("../controllers/auth");
 
 const { userSignupValidator } = require("../validator");
 
