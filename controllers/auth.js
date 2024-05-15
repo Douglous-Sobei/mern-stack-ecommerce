@@ -72,3 +72,55 @@ exports.requireSignin = expressJwt({
   algorithms: ["HS256"],
   userProperty: "auth",
 });
+
+exports.isAuth = async (req, res, next) => {
+  try {
+    // Check if req.profile and req.auth are defined and their _id properties match
+    const user =
+      req.profile &&
+      req.auth &&
+      req.profile._id.toString() === req.auth._id.toString();
+
+    if (!user) {
+      // If user is not authenticated, send a 403 Forbidden response
+      return res.status(403).json({
+        error: "Access denied",
+      });
+    }
+
+    // Proceed to the next middleware
+    next();
+  } catch (error) {
+    // If an error occurs, send a 500 Internal Server Error response
+    console.error("Error in isAuth middleware:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.isAdmin = async (req, res, next) => {
+  try {
+    // Check if req.profile is defined
+    if (!req.profile) {
+      return res.status(403).json({
+        error: "User profile not found",
+      });
+    }
+
+    // Check if the role property is 'admin'
+    const isAdmin = req.profile.role === 1;
+
+    if (!isAdmin) {
+      // If user is not an admin, send a 403 Forbidden response
+      return res.status(403).json({
+        error: "Admin access required",
+      });
+    }
+
+    // Proceed to the next middleware
+    next();
+  } catch (error) {
+    // If an error occurs, send a 500 Internal Server Error response
+    console.error("Error in isAdmin middleware:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
