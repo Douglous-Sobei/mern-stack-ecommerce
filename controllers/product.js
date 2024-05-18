@@ -3,6 +3,34 @@ const fs = require("fs").promises;
 const Product = require("../models/product");
 const { errorHandler } = require("../helpers/dbErrorHandler");
 
+exports.productById = async (req, res, next, id) => {
+  try {
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(400).json({ error: "Product not found" });
+    }
+    req.product = product;
+    next();
+  } catch (error) {
+    console.error("Error fetching product by ID:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+exports.read = async (req, res) => {
+  try {
+    const productId = req.params.productId;
+    const product = await Product.findById(productId).select("-photo");
+    if (!product) {
+      return res.status(400).json({ error: "Product not found" });
+    }
+    res.json(product);
+  } catch (error) {
+    console.error("Error fetching product for read:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 exports.create = async (req, res) => {
   const form = new formidable.IncomingForm();
   form.keepExtensions = true;
