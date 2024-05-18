@@ -3,6 +3,7 @@ const fs = require("fs").promises;
 const Product = require("../models/product");
 const { errorHandler } = require("../helpers/dbErrorHandler");
 
+// Middleware to fetch product by ID
 exports.productById = async (req, res, next, id) => {
   try {
     const product = await Product.findById(id);
@@ -17,6 +18,7 @@ exports.productById = async (req, res, next, id) => {
   }
 };
 
+// Controller to read product details
 exports.read = async (req, res) => {
   try {
     const productId = req.params.productId;
@@ -31,49 +33,83 @@ exports.read = async (req, res) => {
   }
 };
 
+// Controller to create a new product
 exports.create = async (req, res) => {
-  const form = new formidable.IncomingForm();
-  form.keepExtensions = true;
+  try {
+    const product = await createProduct(req);
+    res.json(product);
+  } catch (error) {
+    console.error("PRODUCT CREATE ERROR:", error);
+    res.status(400).json({ error: errorHandler(error) });
+  }
+};
 
-  form.parse(req, async (err, fields, files) => {
-    if (err) {
-      return res.status(400).json({ error: "Image could not be uploaded" });
-    }
+// Controller to remove a product
+exports.remove = async (req, res) => {
+  try {
+    const productId = req.params.productId;
+    await Product.findByIdAndDelete(productId);
+    res.json({ message: "Product deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
 
-    // Extract single values from arrays
-    const extractedFields = extractFields(fields);
+// Controller to update a product
+exports.update = async (req, res) => {
+  try {
+    const product = await updateProduct(req);
+    res.json(product);
+  } catch (error) {
+    console.error("PRODUCT UPDATE ERROR:", error);
+    res.status(400).json({ error: errorHandler(error) });
+  }
+};
 
-    // Validate required fields
-    const missingFieldError = validateFields(extractedFields);
-    if (missingFieldError) {
-      return res.status(400).json({ error: missingFieldError });
-    }
+// Helper function to create a product
+const createProduct = async (req) => {
+  const { fields, files } = await parseFormData(req);
+  const extractedFields = extractFields(fields);
+  validateFields(extractedFields);
+  const product = new Product(extractedFields);
+  await handlePhoto(files.photo, product);
+  return product.save();
+};
 
-    const product = new Product(extractedFields);
+// Helper function to update a product
+const updateProduct = async (req) => {
+  const { fields, files } = await parseFormData(req);
+  const extractedFields = extractFields(fields);
+  const product = Object.assign(req.product, extractedFields);
+  validateFields(extractedFields);
+  await handlePhoto(files.photo, product);
+  return product.save();
+};
 
-    // Handle photo file if present
-    const photoError = await handlePhoto(files.photo, product);
-    if (photoError) {
-      return res.status(400).json({ error: photoError });
-    }
-
-    // Save product to database
-    try {
-      const result = await product.save();
-      res.json(result);
-    } catch (saveErr) {
-      console.error("PRODUCT CREATE ERROR:", saveErr);
-      return res.status(400).json({ error: errorHandler(saveErr) });
-    }
+// Helper function to parse form data
+const parseFormData = async (req) => {
+  return new Promise((resolve, reject) => {
+    const form = new formidable.IncomingForm();
+    form.keepExtensions = true;
+    form.parse(req, (err, fields, files) => {
+      if (err) {
+        reject("Image could not be uploaded");
+      } else {
+        resolve({ fields, files });
+      }
+    });
   });
 };
 
+// Helper function to extract fields from form data
 const extractFields = (fields) => {
   return Object.fromEntries(
     Object.entries(fields).map(([key, value]) => [key, value[0]])
   );
 };
 
+// Helper function to validate required fields
 const validateFields = ({
   name,
   description,
@@ -83,23 +119,17 @@ const validateFields = ({
   shipping,
 }) => {
   if (!name || !description || !price || !category || !quantity || !shipping) {
-    return "All fields are required";
+    throw new Error("All fields are required");
   }
-  return null;
 };
 
+// Helper function to handle product photo
 const handlePhoto = async (photos, product) => {
-  if (!photos || !photos[0]) return null;
-
+  if (!photos || !photos[0]) return;
   const photo = photos[0];
-  if (!photo.filepath) return "File path is not defined";
-  if (photo.size > 1000000) return "Image should be less than 1mb in size";
-
-  try {
-    product.photo.data = await fs.readFile(photo.filepath);
-    product.photo.contentType = photo.mimetype;
-    return null;
-  } catch (readErr) {
-    return "Error reading file";
-  }
+  if (!photo.filepath) throw new Error("File path is not defined");
+  if (photo.size > 1000000)
+    throw new Error("Image should be less than 1mb in size");
+  product.photo.data = await fs.readFile(photo.filepath);
+  product.photo.contentType = photo.mimetype;
 };
