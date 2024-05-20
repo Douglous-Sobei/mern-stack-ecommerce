@@ -138,7 +138,7 @@ const handlePhoto = async (photos, product) => {
 exports.listProducts = async (req, res) => {
   try {
     const sortBy = req.query.sortBy || "createdAt";
-    const order = req.query.order || "desc";
+    const order = req.query.order || "asc";
     const limit = parseInt(req.query.limit) || 10;
 
     const products = await Product.find()
