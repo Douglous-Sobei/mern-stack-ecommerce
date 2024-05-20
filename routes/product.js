@@ -9,6 +9,7 @@ const {
   remove,
   update,
   listProducts,
+  listRelated,
 } = require("../controllers/product");
 const { requireSignin, isAuth, isAdmin } = require("../controllers/auth");
 const { userById } = require("../controllers/user");
@@ -31,6 +32,7 @@ router.put(
   update
 );
 router.get("/products", listProducts);
+router.get("/products/related/:productId", listRelated);
 
 // Route parameter middleware to extract user ID
 router.param("userId", userById);

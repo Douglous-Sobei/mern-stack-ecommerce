@@ -67,21 +67,13 @@ exports.update = async (req, res) => {
   }
 };
 
-// Helper function to create a product
-const createProduct = async (req) => {
+// Helper function to create or update a product
+const createOrUpdateProduct = async (req, isUpdate = false) => {
   const { fields, files } = await parseFormData(req);
   const extractedFields = extractFields(fields);
-  validateFields(extractedFields);
-  const product = new Product(extractedFields);
-  await handlePhoto(files.photo, product);
-  return product.save();
-};
-
-// Helper function to update a product
-const updateProduct = async (req) => {
-  const { fields, files } = await parseFormData(req);
-  const extractedFields = extractFields(fields);
-  const product = Object.assign(req.product, extractedFields);
+  const product = isUpdate
+    ? Object.assign(req.product, extractedFields)
+    : new Product(extractedFields);
   validateFields(extractedFields);
   await handlePhoto(files.photo, product);
   return product.save();
@@ -155,6 +147,35 @@ exports.listProducts = async (req, res) => {
     res.json(products);
   } catch (error) {
     console.error("Error listing products:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Controller to list related products
+exports.listRelated = async (req, res) => {
+  try {
+    // Extract productId from request parameters
+    const productId = req.params.productId;
+
+    // Find the product by productId
+    const product = await Product.findById(productId);
+
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    // Find related products based on the same category
+    const relatedProducts = await Product.find({
+      _id: { $ne: product._id }, // Exclude the current product
+      category: product.category, // Match the same category as the current product
+    })
+      .limit(4) // Limit the number of related products to 4
+      .select("-photo") // Exclude the photo field
+      .populate("category", "_id name"); // Populate the category field
+
+    res.json(relatedProducts);
+  } catch (error) {
+    console.error("Error listing related products:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
