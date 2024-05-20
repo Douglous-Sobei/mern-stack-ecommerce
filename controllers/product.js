@@ -200,7 +200,6 @@ exports.listRelated = async (req, res) => {
   }
 };
 
-
 // Controller to list all categories used in products
 exports.listCategories = async (req, res) => {
   try {
@@ -214,6 +213,54 @@ exports.listCategories = async (req, res) => {
     res.json(categories);
   } catch (error) {
     console.error("Error listing product categories:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Controller to list products by search criteria
+exports.listBySearch = async (req, res) => {
+  const order = req.body.order ? req.body.order : "desc";
+  const sortBy = req.body.sortBy ? req.body.sortBy : "_id";
+  const limit = req.body.limit ? parseInt(req.body.limit) : 100;
+  const skip = parseInt(req.body.skip);
+  const findArgs = {};
+
+  // Iterate over each filter in the request body
+  for (let key in req.body.filters) {
+    if (req.body.filters[key].length > 0) {
+      if (key === "price") {
+        // For price filter, use greater than and less than or equal to operators
+        findArgs[key] = {
+          $gte: req.body.filters[key][0],
+          $lte: req.body.filters[key][1],
+        };
+      } else {
+        // For other filters, directly assign the filter values
+        findArgs[key] = req.body.filters[key];
+      }
+    }
+  }
+
+  try {
+    // Execute the query with the specified filters, sorting, and pagination
+    const products = await Product.find(findArgs)
+      .select("-photo")
+      .populate("category")
+      .sort([[sortBy, order]])
+      .skip(skip)
+      .limit(limit)
+      .exec();
+
+    if (!products) {
+      return res.status(404).json({ error: "Products not found" });
+    }
+
+    res.json({
+      size: products.length,
+      data: products,
+    });
+  } catch (error) {
+    console.error("Error listing products by search:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
