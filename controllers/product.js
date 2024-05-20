@@ -264,3 +264,21 @@ exports.listBySearch = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+// Controller to get product photo
+exports.photo = async (req, res) => {
+  try {
+    const productId = req.params.productId;
+    const product = await Product.findById(productId).select("photo");
+
+    if (!product || !product.photo || !product.photo.data) {
+      return res.status(404).json({ error: "Photo not found" });
+    }
+
+    res.set("Content-Type", product.photo.contentType);
+    return res.send(product.photo.data);
+  } catch (error) {
+    console.error("Error fetching product photo:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
