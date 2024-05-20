@@ -2,7 +2,14 @@ const express = require("express");
 const router = express.Router();
 
 // Importing necessary controllers and middleware
-const { create, productById, read, remove,update } = require("../controllers/product");
+const {
+  create,
+  productById,
+  read,
+  remove,
+  update,
+  listProducts,
+} = require("../controllers/product");
 const { requireSignin, isAuth, isAdmin } = require("../controllers/auth");
 const { userById } = require("../controllers/user");
 
@@ -23,6 +30,7 @@ router.put(
   isAdmin,
   update
 );
+router.get("/products", listProducts);
 
 // Route parameter middleware to extract user ID
 router.param("userId", userById);

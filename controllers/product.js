@@ -133,3 +133,28 @@ const handlePhoto = async (photos, product) => {
   product.photo.data = await fs.readFile(photo.filepath);
   product.photo.contentType = photo.mimetype;
 };
+
+// Controller to list products by sell or arrival
+exports.listProducts = async (req, res) => {
+  try {
+    const sortBy = req.query.sortBy || "createdAt";
+    const order = req.query.order || "desc";
+    const limit = parseInt(req.query.limit) || 10;
+
+    const products = await Product.find()
+      .select("-photo")
+      .populate("category")
+      .sort({ [sortBy]: order })
+      .limit(limit)
+      .exec();
+
+    if (!products) {
+      return res.status(404).json({ error: "Products not found" });
+    }
+
+    res.json(products);
+  } catch (error) {
+    console.error("Error listing products:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
