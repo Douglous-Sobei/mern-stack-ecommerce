@@ -6,63 +6,54 @@ const { errorHandler } = require("../helpers/dbErrorHandler");
 // Signup function: Create a new user
 exports.signup = async (req, res) => {
   try {
-    // Create a new user instance with request body data
     const newUser = new User(req.body);
-    // Save the new user to the database
     const user = await newUser.save();
-    // Remove sensitive information from the user object
+
     user.salt = undefined;
     user.hashed_password = undefined;
-    // Respond with the user object
+
     res.json({ user });
   } catch (error) {
-    // If an error occurs during signup, handle it
-    // Use errorHandler to format the error message
     const errorMessage = errorHandler(error);
-    // Send the formatted error message in the response
     res.status(400).json({ error: errorMessage });
   }
 };
 
 // Signin function: Authenticate user and generate JWT token
 exports.signin = async (req, res) => {
+  const { email, password } = req.body;
+
   try {
-    // Destructure email and password from request body
-    const { email: userEmail, password } = req.body;
-    // Find user by email in the database
-    const user = await User.findOne({ email: userEmail });
-    // If user does not exist, return an error
+    const user = await User.findOne({ email });
+
     if (!user) {
-      return res.status(400).json({
-        error: "User with that email does not exist. Please sign up.",
-      });
+      return res
+        .status(400)
+        .json({
+          error: "User with that email does not exist. Please sign up.",
+        });
     }
-    // If password does not match, return an error
+
     if (!user.authenticate(password)) {
       return res
         .status(401)
         .json({ error: "Email and password do not match." });
     }
-    // Generate JWT token with user id
+
     const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET);
-    // Set the token as a cookie with an expiry date
     res.cookie("t", token, { expire: new Date() + 9999 });
-    // Respond with the token and user information
+
     const { _id, name, email, role } = user;
-    return res.json({ token, user: { _id, email, name, role } });
+    res.json({ token, user: { _id, email, name, role } });
   } catch (error) {
-    // If an error occurs during signin, log it
     console.error("Error in signin:", error);
-    // Send a generic internal server error message
-    return res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
 // Signout function: Clear JWT token from client's cookies
 exports.signout = (req, res) => {
-  // Clear the JWT token from the client's cookies
   res.clearCookie("t");
-  // Respond with a success message
   res.json({ message: "Signout successful" });
 };
 
@@ -73,53 +64,38 @@ exports.requireSignin = expressJwt({
   userProperty: "auth",
 });
 
-exports.isAuth = async (req, res, next) => {
+// Middleware to check if the user is authenticated
+exports.isAuth = (req, res, next) => {
   try {
-    // Check if req.profile and req.auth are defined and their _id properties match
-    const user =
+    const isUser =
       req.profile &&
       req.auth &&
       req.profile._id.toString() === req.auth._id.toString();
 
-    if (!user) {
-      // If user is not authenticated, send a 403 Forbidden response
-      return res.status(403).json({
-        error: "Access denied",
-      });
+    if (!isUser) {
+      return res.status(403).json({ error: "Access denied" });
     }
 
-    // Proceed to the next middleware
     next();
   } catch (error) {
-    // If an error occurs, send a 500 Internal Server Error response
     console.error("Error in isAuth middleware:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
-exports.isAdmin = async (req, res, next) => {
+// Middleware to check if the user is an admin
+exports.isAdmin = (req, res, next) => {
   try {
-    // Check if req.profile is defined
     if (!req.profile) {
-      return res.status(403).json({
-        error: "User profile not found",
-      });
+      return res.status(403).json({ error: "User profile not found" });
     }
 
-    // Check if the role property is 'admin'
-    const isAdmin = req.profile.role === 1;
-
-    if (!isAdmin) {
-      // If user is not an admin, send a 403 Forbidden response
-      return res.status(403).json({
-        error: "Admin access required",
-      });
+    if (req.profile.role !== 1) {
+      return res.status(403).json({ error: "Admin access required" });
     }
 
-    // Proceed to the next middleware
     next();
   } catch (error) {
-    // If an error occurs, send a 500 Internal Server Error response
     console.error("Error in isAdmin middleware:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }

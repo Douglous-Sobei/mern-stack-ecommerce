@@ -1,5 +1,3 @@
-// app.js
-
 const express = require("express");
 const mongoose = require("mongoose");
 const morgan = require("morgan");
@@ -7,35 +5,37 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 require("dotenv").config();
 
-// import routes
+// Import routes
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
 const categoryRoutes = require("./routes/category");
 const productRoutes = require("./routes/product");
 
-// app
+// Initialize express app
 const app = express();
 
-// db
+// Connect to MongoDB
 mongoose
   .connect(process.env.DATABASE, {
     useNewUrlParser: true,
   })
-  .then(() => console.log("Db Connected"));
+  .then(() => console.log("Database Connected"));
 
-// middleware
-app.use(morgan("dev"));
-app.use(bodyParser.json());
-app.use(cookieParser());
+// Middleware
+app.use(morgan("dev")); // Logger middleware
+app.use(bodyParser.json()); // Parse incoming request bodies in JSON format
+app.use(cookieParser()); // Parse cookies attached to the client request
 
-// routes middleware
-app.use("/api", authRoutes);
-app.use("/api", userRoutes);
-app.use("/api", categoryRoutes);
-app.use("/api", productRoutes);
+// Routes middleware
+app.use("/api", authRoutes); // Authentication routes
+app.use("/api", userRoutes); // User routes
+app.use("/api", categoryRoutes); // Category routes
+app.use("/api", productRoutes); // Product routes
 
+// Set up server port
 const port = process.env.PORT || 8000;
 
+// Start the server
 app.listen(port, () => {
-  console.log(`Server is running on ${port}`);
+  console.log(`Server is running on port ${port}`);
 });
