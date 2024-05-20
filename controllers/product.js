@@ -67,13 +67,21 @@ exports.update = async (req, res) => {
   }
 };
 
-// Helper function to create or update a product
-const createOrUpdateProduct = async (req, isUpdate = false) => {
+// Helper function to create a product
+const createProduct = async (req) => {
   const { fields, files } = await parseFormData(req);
   const extractedFields = extractFields(fields);
-  const product = isUpdate
-    ? Object.assign(req.product, extractedFields)
-    : new Product(extractedFields);
+  validateFields(extractedFields);
+  const product = new Product(extractedFields);
+  await handlePhoto(files.photo, product);
+  return product.save();
+};
+
+// Helper function to update a product
+const updateProduct = async (req) => {
+  const { fields, files } = await parseFormData(req);
+  const extractedFields = extractFields(fields);
+  const product = Object.assign(req.product, extractedFields);
   validateFields(extractedFields);
   await handlePhoto(files.photo, product);
   return product.save();
@@ -126,6 +134,13 @@ const handlePhoto = async (photos, product) => {
   product.photo.contentType = photo.mimetype;
 };
 
+/**
+ * sell / arrival
+ * by sell = /products?sortBy=sold&order=des&limit=4
+ * by arrival = /products?sortBy=createdAt&order=des$limit4
+ * if no params are sent, then all products are returned
+ */
+
 // Controller to list products by sell or arrival
 exports.listProducts = async (req, res) => {
   try {
@@ -150,6 +165,11 @@ exports.listProducts = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+/**
+ * It will find the products based on the req product category
+ * Other products with same category will be returned
+ */
 
 // Controller to list related products
 exports.listRelated = async (req, res) => {
@@ -176,6 +196,24 @@ exports.listRelated = async (req, res) => {
     res.json(relatedProducts);
   } catch (error) {
     console.error("Error listing related products:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
+// Controller to list all categories used in products
+exports.listCategories = async (req, res) => {
+  try {
+    // Find all unique categories from the products
+    const categories = await Product.distinct("category");
+
+    if (!categories) {
+      return res.status(404).json({ error: "No categories found" });
+    }
+
+    res.json(categories);
+  } catch (error) {
+    console.error("Error listing product categories:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
