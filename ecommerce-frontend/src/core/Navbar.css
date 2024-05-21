@@ -14,13 +14,14 @@ nav {
 nav ul {
   list-style-type: none;
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between; /* Space-between for better spacing on larger screens */
   margin: 0;
   padding: 0;
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
 }
 
 nav ul li {
-  margin: 0;
+  margin: 0 10px; /* Add horizontal margin for spacing */
 }
 
 nav ul li .nav-link {
@@ -35,4 +36,19 @@ nav ul li .nav-link {
 nav ul li .nav-link:hover {
   background-color: #3498db; /* Bright blue for hover effect */
   color: #fff; /* White color for text on hover */
+}
+
+@media (max-width: 768px) {
+  nav ul {
+    flex-direction: column; /* Stack links vertically on small screens */
+    align-items: center; /* Center align links */
+  }
+
+  nav ul li {
+    margin: 5px 0; /* Adjust vertical margin for small screens */
+  }
+
+  nav ul li .nav-link {
+    padding: 10px 20px; /* Increase padding for better touch targets on mobile */
+  }
 }
