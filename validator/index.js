@@ -6,7 +6,7 @@ exports.userSignupValidator = [
   body("name", "Name is required").notEmpty(),
   body("email", "Email must be between 3 to 32 characters")
     .isLength({ min: 3, max: 32 })
-    .matches(/.+\@.+..+/)
+    .matches(/.+\@.+\..+/)
     .withMessage("Email must contain @ symbol"),
   body("password", "Password is required").notEmpty(),
   body("password")

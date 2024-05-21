@@ -1,28 +1,28 @@
-"use strict";
+// helpers/dbErrorHandler.js
 
 /**
  * Get unique error field name
  */
 const uniqueMessage = (error) => {
-  let output;
+  let output = "";
   try {
-    let fieldName = error.message.substring(
-      error.message.lastIndexOf(".$") + 2,
-      error.message.lastIndexOf("_1")
-    );
-    output =
-      fieldName.charAt(0).toUpperCase() +
-      fieldName.slice(1) +
-      " already exists";
+    // Extract the field causing the unique constraint error
+    const fieldName = Object.keys(error.keyPattern).join(", ");
+    if (fieldName.includes("email") && fieldName.includes("name")) {
+      output = "User already exists";
+    } else {
+      output = `${
+        fieldName.charAt(0).toUpperCase() + fieldName.slice(1)
+      } already exists`;
+    }
   } catch (ex) {
     output = "Unique field already exists";
   }
-
   return output;
 };
 
 /**
- * Get the erroror message from error object
+ * Get the error message from the error object
  */
 exports.errorHandler = (error) => {
   let message = "";
@@ -37,9 +37,15 @@ exports.errorHandler = (error) => {
         message = "Something went wrong";
     }
   } else {
-    for (let errorName in error.errorors) {
-      if (error.errorors[errorName].message)
-        message = error.errorors[errorName].message;
+    for (let errorName in error.errors) {
+      if (
+        error.errors[errorName].kind === "regexp" &&
+        error.errors[errorName].path === "email"
+      ) {
+        message = "Please fill a valid email address";
+      } else if (error.errors[errorName].message) {
+        message = error.errors[errorName].message;
+      }
     }
   }
 

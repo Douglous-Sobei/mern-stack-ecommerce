@@ -3,10 +3,14 @@ const jwt = require("jsonwebtoken");
 const expressJwt = require("express-jwt");
 const { errorHandler } = require("../helpers/dbErrorHandler");
 
+const { validationResult } = require("express-validator");
+
+
+
 // Signup function: Create a new user
 exports.signup = async (req, res) => {
   try {
-    const { email, password, passwordConfirmation } = req.body;
+    const { name, email, password, passwordConfirmation } = req.body;
 
     // Check if passwords match
     if (password !== passwordConfirmation) {
@@ -21,6 +25,7 @@ exports.signup = async (req, res) => {
 
     // Create a new user instance from the request body
     const user = new User({
+      name,
       email: normalizedEmail,
       password,
       isAdmin: isFirstUser,

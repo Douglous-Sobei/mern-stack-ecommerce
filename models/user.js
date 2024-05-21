@@ -1,3 +1,5 @@
+// models/user.js
+
 const mongoose = require("mongoose");
 const crypto = require("crypto");
 const { v1: uuidv1 } = require("uuid");
@@ -9,6 +11,7 @@ const userSchema = new mongoose.Schema(
       trim: true,
       required: true,
       maxlength: 32,
+      unique: true, // Add unique constraint
     },
     email: {
       type: String,
@@ -43,7 +46,7 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// virtual field
+// Virtual field for password
 userSchema
   .virtual("password")
   .set(function (password) {

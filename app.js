@@ -17,9 +17,7 @@ const app = express();
 
 // Connect to MongoDB
 mongoose
-  .connect(process.env.DATABASE, {
-    useNewUrlParser: true,
-  })
+  .connect(process.env.DATABASE)
   .then(() => console.log("Database Connected"));
 
 // Middleware
