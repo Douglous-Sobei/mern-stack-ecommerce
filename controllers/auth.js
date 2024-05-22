@@ -5,8 +5,6 @@ const { errorHandler } = require("../helpers/dbErrorHandler");
 
 const { validationResult } = require("express-validator");
 
-
-
 // Signup function: Create a new user
 exports.signup = async (req, res) => {
   try {
