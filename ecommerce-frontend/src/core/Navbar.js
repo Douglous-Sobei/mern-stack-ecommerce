@@ -1,6 +1,6 @@
-import React from "react";
+import React, { Fragment } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { signout } from "../api";
+import { signout, isAuthenticated } from "../api";
 
 const Navbar = () => {
   const navigate = useNavigate(); // Initialize navigate
@@ -32,25 +32,31 @@ const Navbar = () => {
                 Home
               </Link>
             </li>
-            <li className="nav-item">
-              <Link className="nav-link" to="/signin">
-                Signin
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link className="nav-link" to="/signup">
-                Signup
-              </Link>
-            </li>
-            <li className="nav-item">
-              <span
-                className="nav-link"
-                style={{ cursor: "pointer", color: "#ffffff" }}
-                onClick={handleSignout} // Removed extra arrow function
-              >
-                Signout
-              </span>
-            </li>
+            {!isAuthenticated() && ( // Call isAuthenticated as a function
+              <Fragment>
+                <li className="nav-item">
+                  <Link className="nav-link" to="/signin">
+                    Signin
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link className="nav-link" to="/signup">
+                    Signup
+                  </Link>
+                </li>
+              </Fragment>
+            )}
+            {isAuthenticated() && ( // Call isAuthenticated as a function
+              <li className="nav-item">
+                <span
+                  className="nav-link"
+                  style={{ cursor: "pointer", color: "#ffffff" }}
+                  onClick={handleSignout}
+                >
+                  Signout
+                </span>
+              </li>
+            )}
           </ul>
         </div>
       </div>
