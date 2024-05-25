@@ -33,9 +33,27 @@ export const signin = async (user) => {
   }
 };
 
-export const authenticate = async (data,next) => {
-  if(typeof window !== "undefined"){
-    localStorage.setItem("jwt",JSON.stringify(data));
+export const authenticate = async (data, next) => {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("jwt", JSON.stringify(data));
     next();
   }
-} 
+};
+
+export const signout = async (next) => {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("jwt");
+    next();
+    return fetch(`${API}/signout`, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => {
+        console.log("signout", response);
+      })
+      .catch((err) => console.log("error", err));
+  }
+};

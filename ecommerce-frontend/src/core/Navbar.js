@@ -1,8 +1,16 @@
-// src/core/Navbar.js
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { signout } from "../api";
 
 const Navbar = () => {
+  const navigate = useNavigate(); // Initialize navigate
+
+  const handleSignout = () => {
+    signout(() => {
+      navigate("/");
+    });
+  };
+
   return (
     <nav className="navbar navbar-expand-md navbar-dark bg-dark">
       <div className="container">
@@ -33,6 +41,15 @@ const Navbar = () => {
               <Link className="nav-link" to="/signup">
                 Signup
               </Link>
+            </li>
+            <li className="nav-item">
+              <span
+                className="nav-link"
+                style={{ cursor: "pointer", color: "#ffffff" }}
+                onClick={handleSignout} // Removed extra arrow function
+              >
+                Signout
+              </span>
             </li>
           </ul>
         </div>
