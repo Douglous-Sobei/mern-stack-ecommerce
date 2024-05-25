@@ -32,3 +32,10 @@ export const signin = async (user) => {
     return { error: "Something went wrong." };
   }
 };
+
+export const authenticate = async (data,next) => {
+  if(typeof window !== "undefined"){
+    localStorage.setItem("jwt",JSON.stringify(data));
+    next();
+  }
+} 

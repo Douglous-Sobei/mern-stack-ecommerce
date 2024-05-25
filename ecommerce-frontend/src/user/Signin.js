@@ -2,10 +2,13 @@ import React, { useState } from "react";
 import Layout from "../core/Layout";
 import { signin } from "../api"; // Import the signin function from the api
 import { useNavigate } from "react-router-dom"; // Import useNavigate from react-router-dom
+import { authenticate } from "../api";
 
+// Signin component
 const Signin = () => {
   const navigate = useNavigate(); // Initialize navigate
 
+  // State for form values and submission status
   const [values, setValues] = useState({
     email: "",
     password: "",
@@ -15,10 +18,12 @@ const Signin = () => {
 
   const { email, password, error, success } = values;
 
+  // Handle input change
   const handleChange = (name) => (event) => {
     setValues({ ...values, [name]: event.target.value, error: "" });
   };
 
+  // Handle form submission
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -28,15 +33,24 @@ const Signin = () => {
       if (data.error) {
         setValues({ ...values, error: data.error, success: false });
       } else {
-        // Save user token to local storage
-        // Redirect user to dashboard or perform other actions
-        navigate("/"); // Redirect to the home page
+        // Call authenticate function and redirect on success
+        authenticate(data, () => {
+          setValues({
+            ...values,
+            email: "",
+            password: "",
+            error: "",
+            success: true,
+          });
+          navigate("/");
+        });
       }
     } catch (err) {
       setValues({ ...values, error: "Something went wrong.", success: false });
     }
   };
 
+  // Form JSX
   const signInForm = () => (
     <form onSubmit={handleSubmit}>
       <div className="form-group">
@@ -65,6 +79,7 @@ const Signin = () => {
     </form>
   );
 
+  // Render the layout, error/success alerts, and the form
   return (
     <Layout
       title="Signin"
