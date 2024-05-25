@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import Layout from "../core/Layout";
-import { API } from "../config"; // Ensure to import the API config
+import { signup } from "../api"; // Import the signup function from the api
 
 const Signup = () => {
-  // Initial state for form values, error, and success messages
+  // State to manage form values and submission status
   const [values, setValues] = useState({
     name: "",
     email: "",
@@ -13,45 +13,37 @@ const Signup = () => {
     success: false,
   });
 
-  // Destructuring values from state for easy access
   const { name, email, password, passwordConfirmation, error, success } =
     values;
 
-  // Function to handle changes in input fields
+  // Handle input change for form fields
   const handleChange = (name) => (event) => {
-    // Update state with new value and clear any previous error
     setValues({ ...values, [name]: event.target.value, error: "" });
   };
 
-  // Function to handle form submission
+  // Handle form submission
   const handleSubmit = async (event) => {
-    event.preventDefault(); // Prevent the default form submission behavior
+    event.preventDefault();
 
-    // Check if passwords match before submitting the form
+    // Validate password confirmation
     if (password !== passwordConfirmation) {
       setValues({ ...values, error: "Passwords do not match." });
       return;
     }
 
     try {
-      // Make a POST request to the signup endpoint
-      const response = await fetch(`${API}/signup`, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name, email, password, passwordConfirmation }),
+      // Call the signup API function
+      const data = await signup({
+        name,
+        email,
+        password,
+        passwordConfirmation,
       });
 
-      // Parse the JSON response
-      const data = await response.json();
-
-      // Check for errors in the response
+      // Handle API response
       if (data.error) {
         setValues({ ...values, error: data.error, success: false });
       } else {
-        // Clear form and show success message
         setValues({
           ...values,
           name: "",
@@ -63,12 +55,11 @@ const Signup = () => {
         });
       }
     } catch (err) {
-      // Handle any errors that occurred during the fetch
       setValues({ ...values, error: "Something went wrong.", success: false });
     }
   };
 
-  // Function to render the signup form
+  // Render the signup form
   const signUpForm = () => (
     <form onSubmit={handleSubmit}>
       <div className="form-group">
@@ -117,16 +108,24 @@ const Signup = () => {
     </form>
   );
 
+  // Render the signup component
   return (
     <Layout
       title="Signup"
       description="Signup to Node React E-commerce App"
       className="container col-md-8 offset-md-2"
     >
-      {/* Display error message if any */}
+      {/* Display error message if present */}
       {error && <div className="alert alert-danger">{error}</div>}
-      {/* Display success message if signup was successful */}
-      {success && <div className="alert alert-success">Signup successful!</div>}
+      {/* Display success message and sign-in link if signup is successful */}
+      {success && (
+        <div>
+          <div className="alert alert-success">Signup successful!</div>
+          <p>
+            Already have an account? <a href="/signin">Sign in</a>
+          </p>
+        </div>
+      )}
       {/* Render the signup form */}
       {signUpForm()}
       {/* Display form values for debugging purposes */}
