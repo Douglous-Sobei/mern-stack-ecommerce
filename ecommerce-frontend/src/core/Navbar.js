@@ -4,7 +4,6 @@ import { signout, isAuthenticated } from "../api";
 
 const Navbar = () => {
   const navigate = useNavigate(); // Initialize navigate
-
   const handleSignout = () => {
     signout(() => {
       navigate("/");
@@ -30,6 +29,11 @@ const Navbar = () => {
             <li className="nav-item">
               <Link className="nav-link" to="/">
                 Home
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link className="nav-link" to="user/dashboard">
+                Dashboard
               </Link>
             </li>
             {!isAuthenticated() && ( // Call isAuthenticated as a function
